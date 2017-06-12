@@ -1,0 +1,20 @@
+<launch>
+
+    <!-- 控制信号 -->
+    
+    <node name="control_node" pkg="label_tool" type="control_node4_0.py" output="screen">
+
+    </node>
+
+
+    <node pkg="label_tool" name="example" type="example" >
+         <param name="load_file" value="$(find label_tool)/data/trackfile.txt"/>
+         <param name="labeled_file" value="$(find label_tool)/data/trackfile0413_labeled.txt"/>
+         <param name="unlabel_file" value="$(find label_tool)/data/0329unlabeled.txt"/>
+    </node>
+
+    <!--rviz -->
+    <node pkg="rviz" name="rviz" type="rviz" respawn="true"/> 
+
+ 
+</launch>

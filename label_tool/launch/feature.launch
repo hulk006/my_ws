@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- 控制信号 -->
+    
+    <node name="control_node" pkg="label_tool" type="control_node4_0.py" output="screen">
+
+    </node>
+
+
+    <node pkg="label_tool" name="featureExtract_node" type="featureExtract_node" >
+         <param name="load_file" value="$(find label_tool)/data/ROC/train/train_file.txt"/>
+         <param name="label_index" value="car"/>
+    </node>
+
+    <!--rviz -->
+    <node pkg="rviz" name="rviz" type="rviz" respawn="true"/> 
+
+ 
+</launch>

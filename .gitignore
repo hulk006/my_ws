@@ -1,5 +1,5 @@
 #filter some file named with follow:
 *.user
+data/*.pcap
 #filter some dir named with follow:
-Data
-
+*-debug

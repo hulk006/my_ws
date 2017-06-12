@@ -1,0 +1,62 @@
+<launch>
+
+    <!-- 控制信号 -->
+    <arg name="rviz" default="true" />
+    <node name="control_node" pkg="lidar_fullscan" type="control_node.py" output="screen">
+
+    </node>
+
+    <!-- 发出scan -->
+    <!--node pkg="rslidar" name="fullscan" type="fullscan">
+         <param name="device_ip" value=""/>
+	 	 <param name="frame_id" value="rslidar"/> 
+         <param name="pcap" value="/home/xcon/catkin_ws/src/data/rslidar/lm33-intensty.pcap"/>
+         <param name="read_once" value="true"/>
+	 <param name="read_fast" value="false"/>
+	 <param name="control_mode" value="1"/>
+	 <param name="frequency" value="10"/>
+    </node-->
+   
+
+    <!--去地面点 -->
+    <node pkg="lidar_cluster" name="terrianNode" type="terrianNode">
+        <param name="topic" value="rslidar"/>
+        <param name="model" value="$(find lidar_cluster)/model/dtree.xml"/>
+        <param name="stepGrid" value="2.0"/>
+        <param name="maxH" value="50"/>
+        <param name="maxW" value="50"/>
+    </node>
+
+    <!--分割 -->
+    <node pkg="lidar_cluster" name="clusterNode" type="clusterNode">
+        <param name="topic" value="terrian"/>
+        <param name="in_clip_min_height" value="-1.6"/>
+        <param name="in_clip_max_height" value="1.0"/>
+        <param name="gWidth" value="50"/>
+        <param name="gHeight" value="50"/>
+        <param name="miniGrid" value="0.2"/>
+        <param name="dilation_size" value="1"/>
+    </node>
+
+   <node pkg="lidar_classify" name="classify_track_node" type="classify_track_node" respawn="true">
+        <param name="modelfile" value="$(find lidar_classify)/svm_model/traincarpedbkg.txt.model"/>
+        <param name="rangefile" value="$(find lidar_classify)/svm_model/traincarpedbkg.txt.range"/>
+	</node>
+
+   <!--node pkg="lidar_classify" name="xgb_node" type="xgb_node" respawn="true">
+	</node-->
+
+    <!--rviz -->
+    <!--node pkg="rviz" name="rviz" type="rviz"/--> 
+    <!--node pkg="rviz" name="rviz" type="rviz" respawn="true"/--> 
+	<group if="$(arg rviz)"> 
+    <arg name="gui" default="False" />
+    <param name="use_gui" value="$(arg gui)"/>  
+    <param name="robot_description" textfile="$(find lidar_classify)/model/default.urdf" /> 
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <node pkg="rviz" type="rviz" name="rviz" respawn="true"/>
+  </group>
+
+ 
+</launch>

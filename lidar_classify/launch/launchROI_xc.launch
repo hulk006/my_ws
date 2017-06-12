@@ -1,0 +1,62 @@
+<launch>
+  <!-- 控制信号 -->
+  <node name="control_node" pkg="lidar_fullscan" type="control_node.py" output="screen">
+  </node>
+
+  <!-- 发出scan -->
+  <node pkg="lidar_fullscan" name="fullscan_puber" type="fullscan_puber">
+    <param name="device_ip" value=""/>
+    <param name="frame_id" value="map2"/>
+    <param name="pcap" value="$(find lidar_cluster)/../data/0510lidar.pcap"/>
+    <param name="read_once" value="false"/>
+    <param name="read_fast" value="true"/>
+    <param name="control_mode" value="0"/>
+    <param name="frequency" value="10"/>
+  </node>
+
+  <!--去地面点 -->
+  <node pkg="lidar_cluster" name="terrianNode" type="terrianNode">
+    <param name="topic" value="fullscan"/>
+    <param name="model" value="$(find lidar_cluster)/model/dtree.xml"/>
+    <param name="stepGrid" value="2.0"/>
+    <param name="maxH" value="50"/>
+    <param name="maxW" value="50"/>
+  </node>
+
+  <!--roiTerrian-->
+  <node pkg="lidar_cluster" name="terrianROI" type="terrianROI">
+    <param name="topic" value="terrian"/>
+    <param name="txtPath" value="$(find lidar_cluster)/../data/roi.txt"/>
+  </node>
+
+  <!--分割 -->
+  <node pkg="lidar_cluster" name="clusterNode" type="clusterNode">
+    <param name="topic" value="terrianROI"/>
+    <param name="in_clip_min_height" value="-1.8"/>
+    <param name="in_clip_max_height" value="1.0"/>
+    <param name="gWidth" value="50"/>
+    <param name="gHeight" value="50"/>
+    <param name="miniGrid" value="0.2"/>
+    <param name="dilation_size" value="1"/>
+  </node>
+
+  <node pkg="lidar_classify" name="classify_track_node" type="classify_track_node" respawn="true">
+    <param name="modelfile" value="$(find lidar_classify)/svm_model/traincarpedbkg.txt.model"/>
+    <param name="rangefile" value="$(find lidar_classify)/svm_model/traincarpedbkg.txt.range"/>
+  </node>
+
+  <!--roiTerrian-->
+  <node pkg="lidar_classify" name="xgb_node" type="xgb_node">
+  </node>
+
+  <group>
+    <arg name="gui" default="False" />
+    <param name="use_gui" value="$(arg gui)"/>
+    <param name="robot_description" textfile="$(find lidar_classify)/model/default.urdf" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <!--rviz -->
+  <node pkg="rviz" name="rviz" type="rviz"/>
+</launch>

@@ -1,0 +1,54 @@
+<launch>
+  <!-- 控制信号 -->
+  <node name="control_node" pkg="lidar_fullscan" type="control_node.py" output="screen">
+  </node>
+
+  <!-- 发出scan -->
+  <node pkg="lidar_fullscan" name="fullscan_puber" type="fullscan_puber">
+    <param name="device_ip" value=""/>
+    <param name="frame_id" value="map2"/>
+    <param name="pcap" value="$(find classify_sdk)/../data/lidar.pcap"/>
+    <param name="read_once" value="false"/>
+    <param name="read_fast" value="true"/>
+    <param name="control_mode" value="0"/>
+    <param name="frequency" value="10"/>
+  </node>
+
+  <!--去地面点 -->
+  <node pkg="classify_sdk" name="lidarTerrianNode" type="lidarTerrianNode">
+    <param name="topic" value="fullscan"/>
+    <param name="model" value="$(find classify_sdk)/model/dtree.xml"/>
+    <param name="stepGrid" value="2.0"/>
+    <param name="maxH" value="50"/>
+    <param name="maxW" value="50"/>
+  </node>
+
+  <!--分割 -->
+  <node pkg="classify_sdk" name="lidarClusterNode" type="lidarClusterNode">
+    <param name="topic" value="terrian"/>
+    <param name="in_clip_min_height" value="-1.8"/>
+    <param name="in_clip_max_height" value="1.0"/>
+    <param name="gWidth" value="50"/>
+    <param name="gHeight" value="50"/>
+    <param name="miniGrid" value="0.2"/>
+    <param name="dilation_size" value="1"/>
+  </node>
+
+  <node pkg="classify_sdk" name="classify_node" type="classify_node" respawn="true">
+    <param name="modelfile" value="$(find classify_sdk)/svm_model/traincarpedbkg.txt.model"/>
+    <param name="rangefile" value="$(find classify_sdk)/svm_model/traincarpedbkg.txt.range"/>
+    <param name="obdfile" value="$(find classify_sdk)/../data/obd.txt"/>
+    <param name="mapfile" value="$(find classify_sdk)/../data/0503vel.txt"/>
+  </node>
+
+  <group>
+    <arg name="gui" default="False" />
+    <param name="use_gui" value="$(arg gui)"/>
+    <param name="robot_description" textfile="$(find classify_sdk)/model/default.urdf" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <!--rviz -->
+  <node pkg="rviz" name="rviz" type="rviz"/>
+</launch>

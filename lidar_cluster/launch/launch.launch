@@ -1,0 +1,27 @@
+<launch>
+    <!-- 控制信号 -->
+    <node name="control_node" pkg="lidar_fullscan" type="control_node.py" output="screen"/>
+
+    <!-- 发出scan -->
+    <node pkg="lidar_fullscan" name="fullscan_puber" type="fullscan_puber">
+        <param name="device_ip" value=""/>
+	    <param name="frame_id" value="velodyne"/>
+        <param name="pcap" value="/home/mjj/data/lidar/0503/lidar.pcap"/>
+        <param name="read_once" value="false"/>
+	    <param name="read_fast" value="true"/>
+	    <param name="control_mode" value="0"/>
+	    <param name="frequency" value="10"/>
+    </node>
+
+    <group>
+        <arg name="gui" default="False" />
+        <param name="use_gui" value="$(arg gui)"/>
+        <param name="robot_description" textfile="$(find lidar_cluster)/model/default.urdf" />
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    </group>
+
+    <!--rviz -->
+    <node pkg="rviz" name="rviz" type="rviz"/>
+
+</launch>
